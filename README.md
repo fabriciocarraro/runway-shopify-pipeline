@@ -39,6 +39,25 @@ python catalog_to_video.py --store yourstore.myshopify.com --skus 5   # the real
 
 That second command is the whole point: most Shopify stores expose `products.json` publicly, so this runs against **your real catalog** with zero app installs and zero auth dances.
 
+What a run looks like:
+
+```text
+🛍  Fetching catalog from yourstore.myshopify.com …
+   3 of 3 products to generate · 5s each · est. ~180 credits (~$1.80)
+
+  🚀 submitted retro-runner-sneaker  (task 21dcba8c…)
+  🚀 submitted soy-candle-cedar  (task 0a4214c4…)
+  🚀 submitted steel-bottle-750ml  (task 9f9086d4…)
+
+  ✅ retro-runner-sneaker.mp4
+  ✅ soy-candle-cedar.mp4
+  ✅ steel-bottle-750ml.mp4
+
+🎬 3 videos · 6m42s wall-clock · ~180 credits (~$1.80)
+
+📣 Tweet-ready: "I turned yourstore.myshopify.com's catalog into 3 product videos in 6 minutes, for about $1.80. No shoot, no agency. One script."
+```
+
 > **Tip:** `--dry-run` previews any run, live store included, without spending a credit. To generate from `sample_catalog.json` for real, swap its placeholder URLs for public HTTPS product images first.
 
 ## 🧩 How it works
@@ -73,7 +92,7 @@ That second command is the whole point: most Shopify stores expose `products.jso
 |:--------:|:-----------:|:----------:|
 | Slow push-in, soft studio light, clean background | Natural light, shallow depth of field, warm handheld drift | Dark background, sweeping rim light, slow orbit |
 
-The presets live in [`styles.py`](styles.py) as a plain `name → prompt` dict. **Add your own by dropping a new entry in that file** — the CLI picks it up automatically, so your name becomes a valid `--style` choice with no other changes.
+The presets live in [`styles.py`](styles.py) as a plain `name → prompt` dict. **Add your own by dropping a new entry in that file**: the CLI picks it up automatically, so your name becomes a valid `--style` choice with no other changes.
 
 ## 🛟 Troubleshooting
 

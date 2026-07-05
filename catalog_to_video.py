@@ -373,7 +373,7 @@ def main():
         src_label = args.store or args.catalog.name
         print(f'\n📣 Tweet-ready: "I turned {src_label}\'s catalog into {len(outputs)} product '
               f'videos in {mins} minutes, for about ${spent_credits * USD_PER_CREDIT:.2f}. '
-              f'No shoot, no agency — one script."')
+              f'No shoot, no agency. One script."')
     elif submit_failures or failures or still_pending:
         sys.exit(1)  # nothing produced and something went wrong: fail loudly for scripts/CI
 
