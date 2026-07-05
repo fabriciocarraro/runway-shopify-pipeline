@@ -40,8 +40,10 @@ TERMINAL_SUCCESS = {"SUCCEEDED"}
 # treated as "still rendering" by falling through in poll_all.
 TERMINAL_FAILURE = {"FAILED", "CANCELED", "CANCELLED"}
 
-# VERIFY: current credit pricing for gen4.5 (assumed 5 credits/sec, $0.01/credit).
-CREDITS_PER_SECOND = 5
+# Gen-4.5 pricing, confirmed against docs.dev.runwayml.com/guides/pricing:
+# 12 credits per second of video; credits cost $0.01 each → 5s clip ≈ $0.60.
+# (gen4_turbo is 5 credits/s — don't mix them up when switching models.)
+CREDITS_PER_SECOND = 12
 USD_PER_CREDIT = 0.01
 
 # gen4.5 image_to_video accepted ratios (docs.dev.runwayml.com/assets/inputs):
@@ -198,7 +200,9 @@ def main():
     src.add_argument("--store", help="Shopify store domain, e.g. yourstore.myshopify.com")
     src.add_argument("--catalog", type=Path, help="Local catalog JSON (see sample_catalog.json)")
     ap.add_argument("--skus", type=int, default=5, help="How many products (default 5)")
-    ap.add_argument("--duration", type=int, default=5, help="Seconds per video, 2-10 (default 5)")
+    ap.add_argument("--duration", type=int, default=5,
+                    help="Seconds per video (default 5; if the API rejects a value, "
+                         "its 400 response lists the accepted set)")
     ap.add_argument("--ratio", default=DEFAULT_RATIO, help=f"Output ratio (default {DEFAULT_RATIO})")
     ap.add_argument("--style", choices=STYLES, default="studio")
     ap.add_argument("--out", type=Path, default=Path("./output"))

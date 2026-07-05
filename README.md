@@ -9,7 +9,7 @@
 <img src="assets/demo.gif" alt="Product videos generated from a live Shopify catalog" width="760"/>
 
 <br/>
-<sub><i>Real output — three SKUs pulled straight from a live store's <code>products.json</code>, animated with <code>gen4.5</code>.</i></sub>
+<sub><i>Real output — three SKUs pulled straight from a live store's <code>products.json</code>, animated with <code>gen4.5</code>. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
 
 <br/><br/>
 
@@ -24,7 +24,7 @@
 
 Point it at a store. It pulls each product's photo, animates it with `gen4.5` — **your catalog shot is the anchor frame, so the product stays true, no hallucinated variants** — and exports a Reels-ready 9:16 video per SKU.
 
-**Your first run:** about ten minutes, and free starter credits cover it. A 5-second clip costs on the order of ~$0.25. <!-- pricing approximate; a Runway 400 response enumerates current values -->
+**Your first run:** about ten minutes. A 5-second clip is 60 credits — **~$0.60** — so the [$10 minimum credit purchase](https://docs.dev.runwayml.com/guides/pricing/) covers around 16 product videos. <!-- gen4.5 = 12 credits/sec, $0.01/credit, per docs.dev.runwayml.com/guides/pricing -->
 
 ## ⚡ Quickstart
 
@@ -33,13 +33,13 @@ git clone https://github.com/fabriciocarraro/runway-shopify-pipeline && cd runwa
 pip install -r requirements.txt
 cp .env.example .env     # add your API key → get one at https://dev.runwayml.com
 
-python catalog_to_video.py --catalog sample_catalog.json          # proof it works (sample data)
-python catalog_to_video.py --store yourstore.myshopify.com --skus 5   # now: YOUR products, moving
+python catalog_to_video.py --catalog sample_catalog.json --dry-run    # sanity check: runs with no key, spends nothing
+python catalog_to_video.py --store yourstore.myshopify.com --skus 5   # the real thing: YOUR products, moving
 ```
 
 That second command is the whole point: most Shopify stores expose `products.json` publicly, so this runs against **your real catalog** with zero app installs and zero auth dances.
 
-> **Tip:** start with `--dry-run` to see exactly what would be generated — it spends nothing.
+> **Tip:** `--dry-run` previews any run — live store included — without spending a credit. To generate from `sample_catalog.json` for real, swap its placeholder URLs for public HTTPS product images first.
 
 ## 🧩 How it works
 
@@ -48,7 +48,7 @@ That second command is the whole point: most Shopify stores expose `products.jso
 </div>
 
 1. **Catalog in.** `products.json` (or a local JSON file) → product title + first image, size-normalized through Shopify's CDN.
-2. **Submit everything up front.** Every SKU's image→video task is submitted *before* any polling begins — generation runs in parallel on Runway's side, so 10 videos take barely longer than one.
+2. **Submit everything up front.** Every SKU's image→video task is submitted *before* any polling begins, so generations overlap on Runway's side instead of running one-by-one. How many render at once is governed by your account's [concurrency tier](https://docs.dev.runwayml.com/usage/tiers/).
 3. **Poll with backoff.** One round-robin loop checks every pending task, backing off with jitter between sweeps (Runway's recommended ≥5s cadence).
 4. **Bounded retry on real failures.** Terminal failures are often transient, so each *genuinely failed* task retries exactly once — bounded on purpose, because a truly bad request shouldn't re-bill forever. Tasks that are merely slow (still rendering at timeout) are **never** resubmitted, so nothing gets double-billed.
 5. **Idempotent re-runs.** Already-rendered SKUs are skipped, so a crash or a tweak never re-spends credits on finished work.
@@ -59,7 +59,7 @@ That second command is the whole point: most Shopify stores expose `products.jso
 |------|---------|--------------|
 | `--store` / `--catalog` | — | Source: a live Shopify domain **or** a local catalog JSON (one required) |
 | `--skus N` | `5` | How many products to animate |
-| `--duration N` | `5` | Seconds per video (2–10) |
+| `--duration N` | `5` | Seconds per video (a rejected value gets a 400 that lists the accepted set) |
 | `--style X` | `studio` | Motion preset: `studio` · `lifestyle` · `dramatic` |
 | `--ratio W:H` | `720:1280` | Output aspect ratio (9:16 by default) |
 | `--out DIR` | `./output` | Where the MP4s land |

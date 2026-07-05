@@ -15,6 +15,8 @@ __pycache__/
 output/
 output_*/
 *.mp4
+# …except the curated demo clips shipped with the README
+!examples/*.mp4
 
 # --- OS / editor cruft ---
 .DS_Store
