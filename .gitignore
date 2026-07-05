@@ -1,0 +1,26 @@
+# --- Secrets: never commit your API key ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- Generated video output (regenerable; keep the repo light) ---
+output/
+output_*/
+*.mp4
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local AI assistant docs
+CLAUDE.md

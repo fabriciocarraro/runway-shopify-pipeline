@@ -1,0 +1,20 @@
+{
+  "_readme": "Fallback catalog for stores that block products.json — or for a zero-dependency first run. Replace the image URLs with any publicly reachable HTTPS product photos (your own store's CDN links work great). Each item needs: sku (used as the output filename), title (enriches the motion prompt), image (public URL).",
+  "items": [
+    {
+      "sku": "sample-sneaker",
+      "title": "Retro Runner Sneaker — White/Orange",
+      "image": "https://REPLACE-ME.example.com/sneaker.jpg"
+    },
+    {
+      "sku": "sample-candle",
+      "title": "Hand-Poured Soy Candle — Cedar & Vanilla",
+      "image": "https://REPLACE-ME.example.com/candle.jpg"
+    },
+    {
+      "sku": "sample-bottle",
+      "title": "Insulated Steel Water Bottle 750ml",
+      "image": "https://REPLACE-ME.example.com/bottle.jpg"
+    }
+  ]
+}

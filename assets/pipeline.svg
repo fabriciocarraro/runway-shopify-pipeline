@@ -1,0 +1,70 @@
+<svg width="960" height="300" viewBox="0 0 960 300" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="960" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF7A59"/>
+      <stop offset="0.5" stop-color="#F062B4"/>
+      <stop offset="1" stop-color="#7C5CFF"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#141A28"/>
+      <stop offset="1" stop-color="#0E1320"/>
+    </linearGradient>
+  </defs>
+
+  <!-- self-contained card so it looks intentional on light OR dark backgrounds -->
+  <rect x="1" y="1" width="958" height="298" rx="22" fill="url(#card)" stroke="#273046" stroke-width="1.5"/>
+
+  <!-- header -->
+  <text x="40" y="52" fill="#E6EDF3" font-size="22" font-weight="700">Catalog → Campaign</text>
+  <rect x="40" y="66" width="196" height="26" rx="13" fill="#1B2231" stroke="#2E3A52"/>
+  <text x="56" y="84" fill="#9DA9BC" font-size="13" font-weight="600">gen4.5 · image → video</text>
+  <text x="920" y="52" text-anchor="end" fill="#F062B4" font-size="13" font-weight="700" letter-spacing="1.5">RUNWAY API</text>
+
+  <!-- connective baseline -->
+  <line x1="115" y1="188" x2="845" y2="188" stroke="url(#accent)" stroke-width="2.5" opacity="0.55"/>
+
+  <!-- stage nodes -->
+  <!-- 1 Catalog -->
+  <g>
+    <rect x="40" y="150" width="150" height="76" rx="14" fill="#1B2231" stroke="#33405A"/>
+    <circle cx="64" cy="174" r="12" fill="url(#accent)"/>
+    <text x="64" y="179" text-anchor="middle" fill="#0E1320" font-size="14" font-weight="800">1</text>
+    <text x="86" y="180" fill="#E6EDF3" font-size="15" font-weight="700">Catalog</text>
+    <text x="56" y="208" fill="#8B97A7" font-size="12.5">products.json</text>
+  </g>
+  <!-- 2 Submit -->
+  <g>
+    <rect x="222" y="150" width="150" height="76" rx="14" fill="#1B2231" stroke="#33405A"/>
+    <circle cx="246" cy="174" r="12" fill="url(#accent)"/>
+    <text x="246" y="179" text-anchor="middle" fill="#0E1320" font-size="14" font-weight="800">2</text>
+    <text x="268" y="180" fill="#E6EDF3" font-size="15" font-weight="700">Submit all</text>
+    <text x="238" y="208" fill="#8B97A7" font-size="12.5">up front · parallel</text>
+  </g>
+  <!-- 3 Poll -->
+  <g>
+    <rect x="405" y="150" width="150" height="76" rx="14" fill="#1B2231" stroke="#33405A"/>
+    <circle cx="429" cy="174" r="12" fill="url(#accent)"/>
+    <text x="429" y="179" text-anchor="middle" fill="#0E1320" font-size="14" font-weight="800">3</text>
+    <text x="451" y="180" fill="#E6EDF3" font-size="15" font-weight="700">Poll</text>
+    <text x="421" y="208" fill="#8B97A7" font-size="12.5">backoff + jitter</text>
+  </g>
+  <!-- 4 Retry -->
+  <g>
+    <rect x="587" y="150" width="150" height="76" rx="14" fill="#1B2231" stroke="#33405A"/>
+    <circle cx="611" cy="174" r="12" fill="url(#accent)"/>
+    <text x="611" y="179" text-anchor="middle" fill="#0E1320" font-size="14" font-weight="800">4</text>
+    <text x="633" y="180" fill="#E6EDF3" font-size="15" font-weight="700">Retry once</text>
+    <text x="603" y="208" fill="#8B97A7" font-size="12.5">real failures only</text>
+  </g>
+  <!-- 5 Videos -->
+  <g>
+    <rect x="770" y="150" width="150" height="76" rx="14" fill="#1B2231" stroke="#5B4BD6"/>
+    <circle cx="794" cy="174" r="12" fill="url(#accent)"/>
+    <text x="794" y="179" text-anchor="middle" fill="#0E1320" font-size="14" font-weight="800">5</text>
+    <text x="816" y="180" fill="#E6EDF3" font-size="15" font-weight="700">Videos</text>
+    <text x="786" y="208" fill="#8B97A7" font-size="12.5">MP4 per SKU · 9:16</text>
+  </g>
+
+  <!-- caption -->
+  <text x="40" y="266" fill="#6E7B8E" font-size="13">Idempotent re-runs skip finished SKUs · timeouts stay pending, never resubmitted · bounded retry never re-bills a bad request</text>
+</svg>
