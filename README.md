@@ -6,10 +6,17 @@
 
 <br/>
 
-<img src="assets/demo.gif" alt="Product videos generated from a live Shopify catalog" width="760"/>
+<img src="assets/before.png" alt="Three static product photos from the deathwishcoffee.com catalog" width="760"/>
+
+<sub><i><b>Before:</b> ordinary catalog photos, pulled straight from <a href="https://www.deathwishcoffee.com/">deathwishcoffee.com</a>'s public <code>products.json</code>.</i></sub>
 
 <br/>
-<sub><i>Real output from a real store: three products pulled straight from <a href="https://www.deathwishcoffee.com/">deathwishcoffee.com</a>'s public <code>products.json</code>, animated with <code>gen4.5</code>. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
+<sub><i>↓&nbsp;&nbsp;&nbsp;<code>gen4.5</code> image → video&nbsp;&nbsp;&nbsp;↓</i></sub>
+<br/>
+
+<img src="assets/demo.gif" alt="The same three products, now as generated videos" width="760"/>
+
+<sub><i><b>After:</b> a Reels-ready 9:16 video per product, the catalog photo preserved as the anchor frame. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
 
 <br/><br/>
 
