@@ -49,11 +49,14 @@ TERMINAL_SUCCESS = {"SUCCEEDED"}
 # treated as "still rendering" by falling through in poll_all.
 TERMINAL_FAILURE = {"FAILED", "CANCELED", "CANCELLED"}
 
-# Gen-4.5 pricing, confirmed against docs.dev.runwayml.com/guides/pricing:
-# 12 credits per second of video; credits cost $0.01 each → 5s clip ≈ $0.60.
-# (gen4_turbo is 5 credits/s — don't mix them up when switching models.)
-CREDITS_PER_SECOND = 12
-USD_PER_CREDIT = 0.01
+# The one place the model is named. Pricing follows it, so the two can't drift.
+MODEL = "gen4.5"
+
+# Credits/sec per model, verified 2026-07-05 against docs.dev.runwayml.com/guides/pricing.
+# gen4.5 = 12/s (same for text- and image-to-video); gen4_turbo = 5/s. Keying by
+# MODEL means switching the model can't silently leave a stale price behind.
+CREDITS_PER_SECOND = {"gen4.5": 12, "gen4_turbo": 5}[MODEL]
+USD_PER_CREDIT = 0.01  # flat rate, no volume tiers on the dev portal → $0.60 per 5s clip
 
 # gen4.5 image_to_video accepted ratios (docs.dev.runwayml.com/assets/inputs):
 #   Landscape 1280:720 1584:672 1104:832 · Portrait 720:1280 832:1104 672:1584 · Square 960:960
@@ -138,7 +141,7 @@ def submit_video_task(client: RunwayML, item: dict, prompt: str,
                       duration: int, ratio: str) -> str:
     """Submit one image→video task; the catalog photo is the anchor frame."""
     task = client.image_to_video.create(
-        model="gen4.5",
+        model=MODEL,
         prompt_image=item["image"],
         prompt_text=f"{prompt}. Product: {item['title']}",
         duration=duration,
