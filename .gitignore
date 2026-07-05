@@ -19,6 +19,9 @@ output_*/
 # …except the curated demo clips shipped with the README
 !examples/*.mp4
 
+# --- Build / deliverable artifacts ---
+*.zip
+
 # --- OS / editor cruft ---
 .DS_Store
 Thumbs.db

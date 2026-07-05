@@ -9,7 +9,7 @@
 <img src="assets/demo.gif" alt="Product videos generated from a live Shopify catalog" width="760"/>
 
 <br/>
-<sub><i>Real output: three products pulled straight from a live store's <code>products.json</code>, animated with <code>gen4.5</code>. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
+<sub><i>Real output from a real store: three products pulled straight from <a href="https://www.deathwishcoffee.com/">deathwishcoffee.com</a>'s public <code>products.json</code>, animated with <code>gen4.5</code>. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
 
 <br/><br/>
 
