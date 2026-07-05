@@ -29,6 +29,8 @@ import requests
 from dotenv import load_dotenv
 from runwayml import RunwayML
 
+from styles import STYLES  # motion presets live in their own file — add new ones there
+
 load_dotenv()
 
 # Keep emoji status output alive when stdout is redirected on Windows (cp1252):
@@ -57,20 +59,8 @@ USD_PER_CREDIT = 0.01
 #   Landscape 1280:720 1584:672 1104:832 · Portrait 720:1280 832:1104 672:1584 · Square 960:960
 DEFAULT_RATIO = "720:1280"  # 9:16 — Reels/TikTok-first (confirmed valid)
 
-STYLES = {
-    "studio": (
-        "Cinematic product showcase: slow push-in on the product, soft studio "
-        "lighting, gentle rotation, premium commercial look, clean background"
-    ),
-    "lifestyle": (
-        "Lifestyle product shot: natural light, shallow depth of field, subtle "
-        "handheld camera drift, warm inviting mood, product stays in focus"
-    ),
-    "dramatic": (
-        "Dramatic product reveal: dark background, sweeping rim light, slow "
-        "orbit around the product, high-contrast premium commercial"
-    ),
-}
+# Motion presets (STYLES) live in styles.py so new looks can be added there
+# without touching the pipeline. Imported at the top of this file.
 
 
 # ---------------------------------------------------------------------------

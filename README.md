@@ -73,6 +73,8 @@ That second command is the whole point: most Shopify stores expose `products.jso
 |:--------:|:-----------:|:----------:|
 | Slow push-in, soft studio light, clean background | Natural light, shallow depth of field, warm handheld drift | Dark background, sweeping rim light, slow orbit |
 
+The presets live in [`styles.py`](styles.py) as a plain `name → prompt` dict. **Add your own by dropping a new entry in that file** — the CLI picks it up automatically, so your name becomes a valid `--style` choice with no other changes.
+
 ## 🛟 Troubleshooting
 
 <details>
@@ -105,7 +107,7 @@ DTC creative is a volume game now: paid social wants fresh assets every week, an
 
 ## 🤝 Contributing
 
-PRs welcome, especially new style presets. Fork, add your preset to the `STYLES` dict in [`catalog_to_video.py`](catalog_to_video.py), and open a PR.
+PRs welcome, especially new style presets. Fork, add your preset to the `STYLES` dict in [`styles.py`](styles.py), and open a PR.
 
 ## 📄 License
 
