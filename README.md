@@ -2,14 +2,14 @@
 
 # 🛍️ → 🎬 &nbsp;Catalog → Campaign
 
-### Turn any Shopify catalog into platform-ready product videos — with one script and the [Runway API](https://dev.runwayml.com).
+### Turn any Shopify catalog into platform-ready product videos, with one script and the [Runway API](https://dev.runwayml.com).
 
 <br/>
 
 <img src="assets/demo.gif" alt="Product videos generated from a live Shopify catalog" width="760"/>
 
 <br/>
-<sub><i>Real output — three SKUs pulled straight from a live store's <code>products.json</code>, animated with <code>gen4.5</code>. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
+<sub><i>Real output: three SKUs pulled straight from a live store's <code>products.json</code>, animated with <code>gen4.5</code>. Full-quality MP4s in <a href="examples/">examples/</a>.</i></sub>
 
 <br/><br/>
 
@@ -22,9 +22,9 @@
 
 ---
 
-Point it at a store. It pulls each product's photo, animates it with `gen4.5` — **your catalog shot is the anchor frame, so the product stays true, no hallucinated variants** — and exports a Reels-ready 9:16 video per SKU.
+Point it at a store. It pulls each product's photo, animates it with `gen4.5` (**your catalog shot is the anchor frame, so the product stays true, no hallucinated variants**), and exports a Reels-ready 9:16 video per SKU.
 
-**Your first run:** about ten minutes. A 5-second clip is 60 credits — **~$0.60** — so the [$10 minimum credit purchase](https://docs.dev.runwayml.com/guides/pricing/) covers around 16 product videos. <!-- gen4.5 = 12 credits/sec, $0.01/credit, per docs.dev.runwayml.com/guides/pricing -->
+**Your first run:** about ten minutes. A 5-second clip is 60 credits (**~$0.60**), so the [$10 minimum credit purchase](https://docs.dev.runwayml.com/guides/pricing/) covers around 16 product videos. <!-- gen4.5 = 12 credits/sec, $0.01/credit, per docs.dev.runwayml.com/guides/pricing -->
 
 ## ⚡ Quickstart
 
@@ -39,7 +39,7 @@ python catalog_to_video.py --store yourstore.myshopify.com --skus 5   # the real
 
 That second command is the whole point: most Shopify stores expose `products.json` publicly, so this runs against **your real catalog** with zero app installs and zero auth dances.
 
-> **Tip:** `--dry-run` previews any run — live store included — without spending a credit. To generate from `sample_catalog.json` for real, swap its placeholder URLs for public HTTPS product images first.
+> **Tip:** `--dry-run` previews any run, live store included, without spending a credit. To generate from `sample_catalog.json` for real, swap its placeholder URLs for public HTTPS product images first.
 
 ## 🧩 How it works
 
@@ -50,14 +50,14 @@ That second command is the whole point: most Shopify stores expose `products.jso
 1. **Catalog in.** `products.json` (or a local JSON file) → product title + first image, size-normalized through Shopify's CDN.
 2. **Submit everything up front.** Every SKU's image→video task is submitted *before* any polling begins, so generations overlap on Runway's side instead of running one-by-one. How many render at once is governed by your account's [concurrency tier](https://docs.dev.runwayml.com/usage/tiers/).
 3. **Poll with backoff.** One round-robin loop checks every pending task, backing off with jitter between sweeps (Runway's recommended ≥5s cadence).
-4. **Bounded retry on real failures.** Terminal failures are often transient, so each *genuinely failed* task retries exactly once — bounded on purpose, because a truly bad request shouldn't re-bill forever. Tasks that are merely slow (still rendering at timeout) are **never** resubmitted, so nothing gets double-billed.
+4. **Bounded retry on real failures.** Terminal failures are often transient, so each *genuinely failed* task retries exactly once. The bound is deliberate: a truly bad request shouldn't re-bill forever. Tasks that are merely slow (still rendering at timeout) are **never** resubmitted, so nothing gets double-billed.
 5. **Idempotent re-runs.** Already-rendered SKUs are skipped, so a crash or a tweak never re-spends credits on finished work.
 
 ## ⚙️ Options
 
 | Flag | Default | What it does |
 |------|---------|--------------|
-| `--store` / `--catalog` | — | Source: a live Shopify domain **or** a local catalog JSON (one required) |
+| `--store` / `--catalog` | *(required)* | Source: a live Shopify domain **or** a local catalog JSON (one required) |
 | `--skus N` | `5` | How many products to animate |
 | `--duration N` | `5` | Seconds per video (a rejected value gets a 400 that lists the accepted set) |
 | `--style X` | `studio` | Motion preset: `studio` · `lifestyle` · `dramatic` |
@@ -78,13 +78,13 @@ That second command is the whole point: most Shopify stores expose `products.jso
 <details>
 <summary><b><code>products.json</code> returns 403 / 404</b></summary>
 
-Some stores disable it. Use `--catalog your_file.json` — see [`sample_catalog.json`](sample_catalog.json) for the shape: `{"items": [{"sku", "title", "image"}]}` with public image URLs.
+Some stores disable it. Use `--catalog your_file.json`; see [`sample_catalog.json`](sample_catalog.json) for the shape: `{"items": [{"sku", "title", "image"}]}` with public image URLs.
 </details>
 
 <details>
 <summary><b>400 on ratio or parameters</b></summary>
 
-Read the response body, not just the status code — Runway's validation errors enumerate every accepted value inline. For `gen4.5` image→video the ratios are: `1280:720 1584:672 1104:832` (landscape), `720:1280 832:1104 672:1584` (portrait), `960:960` (square). That body is the source of truth.
+Read the response body, not just the status code: Runway's validation errors enumerate every accepted value inline. For `gen4.5` image→video the ratios are: `1280:720 1584:672 1104:832` (landscape), `720:1280 832:1104 672:1584` (portrait), `960:960` (square). That body is the source of truth.
 </details>
 
 <details>
@@ -96,19 +96,19 @@ Read the response body, not just the status code — Runway's validation errors 
 <details>
 <summary><b>429 · "daily task limit reached"</b></summary>
 
-That's an account-tier cap, not a bug — the script stops cleanly when it hits one instead of hammering. Generate in smaller `--skus` batches, or check your [usage tier](https://docs.dev.runwayml.com/usage/tiers/).
+That's an account-tier cap, not a bug: the script stops cleanly when it hits one instead of hammering. Generate in smaller `--skus` batches, or check your [usage tier](https://docs.dev.runwayml.com/usage/tiers/).
 </details>
 
 ## 💡 Why this exists
 
-DTC creative is a volume game now — paid social wants fresh assets every week, and the traditional pipeline (brief → shoot/agency → revisions) runs days-to-weeks per asset. But if your products live in a catalog, the brief already exists. This repo turns it into video.
+DTC creative is a volume game now: paid social wants fresh assets every week, and the traditional pipeline (brief → shoot/agency → revisions) runs days-to-weeks per asset. But if your products live in a catalog, the brief already exists. This repo turns it into video.
 
 ## 🤝 Contributing
 
-PRs welcome — especially new style presets. Fork, add your preset to the `STYLES` dict in [`catalog_to_video.py`](catalog_to_video.py), and open a PR.
+PRs welcome, especially new style presets. Fork, add your preset to the `STYLES` dict in [`catalog_to_video.py`](catalog_to_video.py), and open a PR.
 
 ## 📄 License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 <div align="center"><br/><sub>Built with the <a href="https://docs.dev.runwayml.com">Runway API</a>.</sub></div>
