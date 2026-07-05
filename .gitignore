@@ -15,6 +15,7 @@ __pycache__/
 output/
 output_*/
 *.mp4
+*.mp4.part
 # …except the curated demo clips shipped with the README
 !examples/*.mp4
 

@@ -18,6 +18,7 @@ import argparse
 import json
 import os
 import random
+import re
 import shutil
 import subprocess
 import sys
@@ -29,6 +30,12 @@ from dotenv import load_dotenv
 from runwayml import RunwayML
 
 load_dotenv()
+
+# Keep emoji status output alive when stdout is redirected on Windows (cp1252):
+# without this, `python catalog_to_video.py ... > run.log` dies on the first 🛍.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 # ---------------------------------------------------------------------------
 # Config
@@ -75,9 +82,14 @@ def fetch_shopify_catalog(store: str, limit: int) -> list[dict]:
     most Shopify stores). Returns [{sku, title, image}]."""
     store = store.replace("https://", "").replace("http://", "").strip("/")
     url = f"https://{store}/products.json?limit={min(limit, 250)}"
-    resp = requests.get(url, headers={"User-Agent": "catalog-to-campaign-demo"}, timeout=30)
-    resp.raise_for_status()
-    products = resp.json().get("products", [])
+    try:
+        resp = requests.get(url, headers={"User-Agent": "catalog-to-campaign-demo"}, timeout=30)
+        resp.raise_for_status()
+        products = resp.json().get("products", [])
+    except requests.exceptions.JSONDecodeError:
+        sys.exit(f"{url} did not return JSON (bot protection?). Use --catalog instead.")
+    except requests.RequestException as e:
+        sys.exit(f"Could not fetch {url}: {e}\nIf the store blocks products.json, use --catalog instead.")
 
     items = []
     for p in products:
@@ -102,10 +114,21 @@ def fetch_shopify_catalog(store: str, limit: int) -> list[dict]:
 
 def load_catalog_file(path: Path, limit: int) -> list[dict]:
     """Load a local catalog: [{"sku": ..., "title": ..., "image": <public URL>}]"""
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    items = [i for i in data.get("items", []) if i.get("image")]
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        sys.exit(f"Catalog file not found: {path}")
+    except json.JSONDecodeError as e:
+        sys.exit(f"{path} is not valid JSON: {e}")
+    items = [i for i in data.get("items", []) if i.get("image") and i.get("sku")]
     return items[:limit]
+
+
+def safe_name(sku: str) -> str:
+    """SKU becomes the output filename — keep it filesystem-safe (local catalogs
+    can contain anything; Shopify handles pass through unchanged)."""
+    return re.sub(r"[^\w.\-]+", "_", sku).strip("._") or "item"
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +138,8 @@ def load_catalog_file(path: Path, limit: int) -> list[dict]:
 def is_rate_limited(exc: Exception) -> bool:
     """True for 429 / daily-limit / rate-limit errors. These won't clear on an
     immediate retry, so retrying just wastes calls (and can create duplicates)."""
+    if getattr(exc, "status_code", None) == 429:
+        return True
     s = str(exc).lower()
     return "429" in s or "daily task limit" in s or "rate limit" in s
 
@@ -148,7 +173,14 @@ def poll_all(client: RunwayML, pending: dict, timeout: float):
 
     while pending:
         for task_id in list(pending):
-            t = client.tasks.retrieve(task_id)
+            try:
+                t = client.tasks.retrieve(task_id)
+            except Exception as e:
+                # A transient retrieve error must not kill the run: the task is
+                # still rendering server-side, and losing track of it means a
+                # re-run would resubmit and re-bill. Leave it for the next sweep.
+                print(f"  ⚠  poll error on {pending[task_id]['sku']} ({e}) — retrying next sweep")
+                continue
             status = t.status
             if status in TERMINAL_SUCCESS:
                 out = t.output
@@ -169,12 +201,16 @@ def poll_all(client: RunwayML, pending: dict, timeout: float):
 
 
 def download(url: str, dest: Path) -> Path:
+    """Stream to a .part file, then move into place atomically: a crash mid-
+    download must never leave a partial {sku}.mp4 for idempotency to skip."""
     dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_suffix(dest.suffix + ".part")
     with requests.get(url, stream=True, timeout=120) as r:
         r.raise_for_status()
-        with open(dest, "wb") as f:
+        with open(tmp, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
+    os.replace(tmp, dest)
     return dest
 
 
@@ -186,7 +222,10 @@ def square_crop(src: Path) -> Path | None:
     cmd = ["ffmpeg", "-y", "-i", str(src),
            "-vf", "crop='min(iw,ih)':'min(iw,ih)'",
            "-c:a", "copy", str(dest)]
-    subprocess.run(cmd, check=True, capture_output=True, text=True)
+    try:
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError:
+        return None  # match the ffmpeg-absent behavior: skip the crop, keep the run alive
     return dest
 
 
@@ -224,8 +263,9 @@ def main():
     if not items:
         sys.exit("No products with images found. If the store blocks products.json, use --catalog.")
 
-    est_credits = len(items) * args.duration * CREDITS_PER_SECOND
-    print(f"   {len(items)} products · {args.duration}s each · est. ~{est_credits} credits (~${est_credits * USD_PER_CREDIT:.2f})\n")
+    for it in items:
+        it["sku"] = safe_name(str(it["sku"]))
+        it.setdefault("title", "Product")
 
     # -- Idempotency: skip SKUs already rendered (re-runs don't re-bill)
     args.out.mkdir(parents=True, exist_ok=True)
@@ -235,6 +275,11 @@ def main():
             print(f"  ↩  {it['sku']} already rendered — skipping")
         else:
             todo.append(it)
+
+    # Estimate what THIS run will spend (skipped SKUs cost nothing).
+    est_credits = len(todo) * args.duration * CREDITS_PER_SECOND
+    print(f"   {len(todo)} of {len(items)} products to generate · {args.duration}s each · "
+          f"est. ~{est_credits} credits (~${est_credits * USD_PER_CREDIT:.2f})\n")
 
     if args.dry_run:
         for it in todo:
@@ -255,7 +300,7 @@ def main():
     # -- Phase 1: submit everything up front (parallel on the API side).
     # Stop early on a daily-limit 429: every further submit would just 429 too.
     pending, submit_failures = {}, []
-    for it in todo:
+    for idx, it in enumerate(todo):
         try:
             tid = submit_video_task(client, it, prompt, args.duration, args.ratio)
             pending[tid] = it
@@ -265,7 +310,7 @@ def main():
             print(f"  ⚠  submit failed for {it['sku']}: {e}")
             if is_rate_limited(e):
                 print("  ⛔ daily task limit reached — submitting no more this run.")
-                for x in todo[todo.index(it) + 1:]:
+                for x in todo[idx + 1:]:
                     submit_failures.append((x, "skipped — daily task limit reached"))
                 break
 
@@ -303,8 +348,14 @@ def main():
     # -- Download
     print()
     outputs = []
-    for _, (it, url) in successes.items():
-        dest = download(url, args.out / f"{it['sku']}.mp4")
+    for task_id, (it, url) in successes.items():
+        try:
+            dest = download(url, args.out / f"{it['sku']}.mp4")
+        except Exception as e:
+            # The render is done and paid for — don't lose it to a download blip.
+            # Surface the URL for manual recovery (note: Runway output URLs expire).
+            failures[task_id] = (it, f"download failed: {e} · output URL: {url}")
+            continue
         outputs.append(dest)
         line = f"  ✅ {dest.name}"
         if args.square:
@@ -323,14 +374,21 @@ def main():
     for _, (it, reason) in failures.items():
         print(f"  ✗ {it['sku']}: {reason}")
     for tid, it in still_pending.items():
-        print(f"  ⏳ {it['sku']}: still rendering when we stopped (task {tid[:8]}…) — "
-              f"not failed. Re-run to try again, or raise --timeout.")
+        print(f"  ⏳ {it['sku']}: still rendering when we stopped (task {tid}) — not failed, "
+              f"not resubmitted. Fetch it later via client.tasks.retrieve, or raise --timeout next run.")
     if outputs:
         src_label = args.store or args.catalog.name
         print(f'\n📣 Tweet-ready: "I turned {src_label}\'s catalog into {len(outputs)} product '
               f'videos in {mins} minutes, for about ${spent_credits * USD_PER_CREDIT:.2f}. '
               f'No shoot, no agency — one script."')
+    elif submit_failures or failures or still_pending:
+        sys.exit(1)  # nothing produced and something went wrong: fail loudly for scripts/CI
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n⚠  Interrupted. Tasks already submitted keep rendering on Runway's side; "
+              "finished downloads are kept, and a re-run skips them.")
+        sys.exit(130)
